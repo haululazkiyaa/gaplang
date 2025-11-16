@@ -52,7 +52,7 @@ export const joinGame = async (gameId, playerId, playerName) => {
 
   const gameData = snapshot.val();
 
-  if (gameData.players.player2) {
+  if (gameData.players?.player2) {
     throw new Error("Game is full");
   }
 
@@ -171,7 +171,7 @@ export const completeRound = async (
   const snapshot = await get(gameRef);
   const gameData = snapshot.val();
 
-  const currentScore = gameData.players[guesser].score || 0;
+  const currentScore = gameData.players?.[guesser]?.score || 0;
   await update(ref(database, `games/${gameId}/players/${guesser}`), {
     score: currentScore + score,
   });
@@ -249,12 +249,12 @@ export const resetGame = async (gameId) => {
     currentWord: null,
     players: {
       player1: {
-        ...gameData.players.player1,
+        ...gameData.players?.player1,
         ready: false,
         score: 0,
       },
       player2: {
-        ...gameData.players.player2,
+        ...gameData.players?.player2,
         ready: false,
         score: 0,
       },

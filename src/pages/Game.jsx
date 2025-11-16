@@ -32,9 +32,9 @@ function Game() {
           setGameData(data);
 
           // Determine current player number
-          if (data.players.player1?.id === user.uid) {
+          if (data.players?.player1?.id === user.uid) {
             setCurrentPlayerNumber("player1");
-          } else if (data.players.player2?.id === user.uid) {
+          } else if (data.players?.player2?.id === user.uid) {
             setCurrentPlayerNumber("player2");
           }
 
@@ -89,7 +89,7 @@ function Game() {
       phaseComponent = (
         <WaitingPhase
           message={`${
-            gameData.players[gameData.currentTurn]?.name
+            gameData.players?.[gameData.currentTurn]?.name || "Pemain"
           } sedang membuat pertanyaan...`}
           icon="✏️"
         />
@@ -111,7 +111,7 @@ function Game() {
       phaseComponent = (
         <WaitingPhase
           message={`${
-            gameData.players[roundData.guesser]?.name
+            gameData.players?.[roundData.guesser]?.name || "Pemain"
           } sedang menebak...`}
           icon="🤔"
         />
@@ -131,19 +131,19 @@ function Game() {
         <div className="score-info">
           <div className="score-item">
             <span className="score-label">
-              {gameData.players.player1?.name}
+              {gameData.players?.player1?.name || "Player 1"}
             </span>
             <span className="score-value">
-              {gameData.players.player1?.score || 0}
+              {gameData.players?.player1?.score || 0}
             </span>
           </div>
           <div className="score-divider">-</div>
           <div className="score-item">
             <span className="score-label">
-              {gameData.players.player2?.name}
+              {gameData.players?.player2?.name || "Player 2"}
             </span>
             <span className="score-value">
-              {gameData.players.player2?.score || 0}
+              {gameData.players?.player2?.score || 0}
             </span>
           </div>
         </div>

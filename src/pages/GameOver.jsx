@@ -28,9 +28,9 @@ function GameOver() {
           setGameData(data);
 
           // Determine current player number
-          if (data.players.player1?.id === user.uid) {
+          if (data.players?.player1?.id === user.uid) {
             setCurrentPlayerNumber("player1");
-          } else if (data.players.player2?.id === user.uid) {
+          } else if (data.players?.player2?.id === user.uid) {
             setCurrentPlayerNumber("player2");
           }
 
@@ -72,8 +72,17 @@ function GameOver() {
     );
   }
 
-  const player1 = gameData.players.player1;
-  const player2 = gameData.players.player2;
+  const player1 = gameData.players?.player1;
+  const player2 = gameData.players?.player2;
+
+  if (!player1 || !player2) {
+    return (
+      <div className="gameover-container">
+        <div className="loading">⏳ Loading data pemain...</div>
+      </div>
+    );
+  }
+
   const winner =
     player1.score > player2.score
       ? player1

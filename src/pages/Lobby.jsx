@@ -41,9 +41,9 @@ function Lobby() {
           setGameData(data);
 
           // Determine current player number
-          if (data.players.player1?.id === user.uid) {
+          if (data.players?.player1?.id === user.uid) {
             setCurrentPlayerNumber("player1");
-          } else if (data.players.player2?.id === user.uid) {
+          } else if (data.players?.player2?.id === user.uid) {
             setCurrentPlayerNumber("player2");
           }
 
@@ -69,14 +69,14 @@ function Lobby() {
     if (!currentPlayerNumber) return;
 
     try {
-      const newReadyState = !gameData.players[currentPlayerNumber].ready;
+      const newReadyState = !gameData.players?.[currentPlayerNumber]?.ready;
       await setPlayerReady(gameId, currentPlayerNumber, newReadyState);
 
       // If both players are ready, start the game
       if (
         newReadyState &&
-        gameData.players.player1?.ready &&
-        gameData.players.player2?.ready
+        gameData.players?.player1?.ready &&
+        gameData.players?.player2?.ready
       ) {
         setTimeout(() => {
           startGame(gameId);
@@ -109,8 +109,8 @@ function Lobby() {
     return null;
   }
 
-  const player1 = gameData.players.player1;
-  const player2 = gameData.players.player2;
+  const player1 = gameData.players?.player1;
+  const player2 = gameData.players?.player2;
   const bothReady = player1?.ready && player2?.ready;
 
   return (
