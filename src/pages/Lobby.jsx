@@ -26,19 +26,27 @@ function Lobby() {
       try {
         const user = await authenticateUser();
         let hasReceivedData = false;
+        let firstCallHandled = false;
 
         // Listen to game changes first
         const unsubscribe = listenToGame(gameId, (data) => {
           if (!data) {
-            // Only show error if we're joining an existing game
-            // For new games, wait a bit for Firebase to sync
-            if (location.state?.isJoining) {
+            // Skip first null callback - Firebase listeners trigger once immediately
+            // then again with actual data
+            if (!firstCallHandled) {
+              firstCallHandled = true;
+              return;
+            }
+
+            // Only show error if we've waited and still no data
+            if (hasReceivedData === false) {
               alert("Game tidak ditemukan!");
               navigate("/");
             }
             return;
           }
 
+          firstCallHandled = true;
           hasReceivedData = true;
           setGameData(data);
 
