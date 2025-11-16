@@ -25,29 +25,27 @@ function Lobby() {
     const initLobby = async () => {
       try {
         const user = await authenticateUser();
-        let hasReceivedData = false;
-        let firstCallHandled = false;
 
-        // Listen to game changes first
+        // If coming from join game, join first before setting up listener
+        if (location.state?.playerName && location.state?.isJoining) {
+          try {
+            await joinGame(gameId, user.uid, location.state.playerName);
+          } catch (error) {
+            console.error("Error joining game:", error);
+            alert("Gagal join game: " + error.message);
+            navigate("/");
+            return;
+          }
+        }
+
+        // Setup listener to game changes
         const unsubscribe = listenToGame(gameId, (data) => {
           if (!data) {
-            // Skip first null callback - Firebase listeners trigger once immediately
-            // then again with actual data
-            if (!firstCallHandled) {
-              firstCallHandled = true;
-              return;
-            }
-
-            // Only show error if we've waited and still no data
-            if (hasReceivedData === false) {
-              alert("Game tidak ditemukan!");
-              navigate("/");
-            }
+            alert("Game tidak ditemukan!");
+            navigate("/");
             return;
           }
 
-          firstCallHandled = true;
-          hasReceivedData = true;
           setGameData(data);
 
           // Determine current player number
@@ -65,35 +63,12 @@ function Lobby() {
 
         setLoading(false);
 
-        // If coming from join game, join the game AFTER listener is set
-        if (location.state?.playerName && location.state?.isJoining) {
-          try {
-            await joinGame(gameId, user.uid, location.state.playerName);
-          } catch (error) {
-            console.error("Error joining game:", error);
-            alert("Gagal join game: " + error.message);
-            unsubscribe();
-            navigate("/");
-            return;
-          }
-        }
-
-        // Safety check: if no data received after 8 seconds, show error
-        // (Longer timeout to account for joinGame retry mechanism)
-        const timeoutId = setTimeout(() => {
-          if (!hasReceivedData) {
-            alert("Game tidak ditemukan atau koneksi bermasalah!");
-            navigate("/");
-          }
-        }, 8000);
-
         return () => {
           unsubscribe();
-          clearTimeout(timeoutId);
         };
       } catch (error) {
         console.error("Error initializing lobby:", error);
-        alert("Gagal join game: " + error.message);
+        alert("Gagal masuk lobby: " + error.message);
         navigate("/");
       }
     };

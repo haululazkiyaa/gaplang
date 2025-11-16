@@ -87,44 +87,53 @@ export const createGame = async (playerId, playerName) => {
 
 // Join existing game
 export const joinGame = async (gameId, playerId, playerName) => {
-  // Retry logic for Firebase sync delay
-  let attempts = 0;
-  const maxAttempts = 3;
-  const retryDelay = 1000; // 1 second
+  const gameRef = ref(database, `games/${gameId}`);
 
-  while (attempts < maxAttempts) {
-    const gameRef = ref(database, `games/${gameId}`);
-    const snapshot = await get(gameRef);
+  // Use onValue to check if game exists (uses same cache as listeners)
+  return new Promise((resolve, reject) => {
+    const checkGame = onValue(
+      gameRef,
+      (snapshot) => {
+        // Unsubscribe immediately after first read
+        checkGame();
 
-    if (snapshot.exists()) {
-      const game = snapshot.val();
-      if (game.players?.player2) {
-        throw new Error("Game is full");
+        if (!snapshot.exists()) {
+          reject(new Error("Game not found"));
+          return;
+        }
+
+        const game = snapshot.val();
+
+        // Check if game is full
+        if (game.players?.player2) {
+          reject(new Error("Game is full"));
+          return;
+        }
+
+        // Update player2 data
+        update(gameRef, {
+          "players/player2": {
+            id: playerId,
+            name: playerName,
+            isHost: false,
+            ready: false,
+          },
+        })
+          .then(() => {
+            // Setup disconnect handler for player2
+            setupDisconnectHandlers(gameId, "player2");
+            resolve(game);
+          })
+          .catch((error) => {
+            reject(error);
+          });
+      },
+      (error) => {
+        checkGame();
+        reject(error);
       }
-
-      await update(gameRef, {
-        "players/player2": {
-          id: playerId,
-          name: playerName,
-          isHost: false,
-          ready: false,
-        },
-      });
-
-      // Setup disconnect handler for player2
-      await setupDisconnectHandlers(gameId, "player2");
-
-      return game;
-    }
-
-    attempts++;
-    if (attempts < maxAttempts) {
-      // Wait before retrying
-      await new Promise((resolve) => setTimeout(resolve, retryDelay));
-    }
-  }
-
-  throw new Error("Game not found");
+    );
+  });
 };
 
 // Set player ready status
