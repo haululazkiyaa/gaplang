@@ -273,6 +273,57 @@ export const completeRound = async (
   }
 };
 
+// Skip round when timer runs out
+export const skipRound = async (gameId, currentRound, phase) => {
+  console.log("Skipping round:", gameId, currentRound, phase);
+
+  try {
+    const gameRef = ref(database, `games/${gameId}`);
+    const snapshot = await get(gameRef);
+    const gameData = snapshot.val();
+
+    if (!gameData) return;
+
+    if (phase === "create") {
+      // Skip word creation phase - mark round as skipped
+      await set(ref(database, `games/${gameId}/rounds/round${currentRound}`), {
+        wordMaker: gameData.currentTurn,
+        guesser: gameData.currentTurn === "player1" ? "player2" : "player1",
+        word: "",
+        hint: "",
+        startTime: Date.now(),
+        endTime: Date.now(),
+        status: "skipped",
+        score: 0,
+        guessedWord: "",
+        hintsUsed: 0,
+      });
+    }
+
+    // Clear current word
+    await set(ref(database, `games/${gameId}/currentWord`), null);
+
+    // Move to next round or end game
+    if (currentRound >= 10) {
+      await update(ref(database, `games/${gameId}`), {
+        status: "finished",
+      });
+    } else {
+      const nextTurn =
+        gameData.currentTurn === "player1" ? "player2" : "player1";
+      await update(ref(database, `games/${gameId}`), {
+        currentRound: currentRound + 1,
+        currentTurn: nextTurn,
+      });
+    }
+
+    console.log("Round skipped successfully");
+  } catch (error) {
+    console.error("Error skipping round:", error);
+    throw error;
+  }
+};
+
 // Listen to game changes
 export const listenToGame = (gameId, callback) => {
   console.log("Setting up listener for game:", gameId);

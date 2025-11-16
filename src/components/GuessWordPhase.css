@@ -168,6 +168,10 @@
 .hint-button-section {
   text-align: center;
   margin-top: 20px;
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  flex-wrap: wrap;
 }
 
 .hint-btn {
@@ -183,12 +187,36 @@
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
+.surrender-btn {
+  padding: 14px 28px;
+  font-size: 16px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #ff6b6b 0%, #ff5252 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
 .hint-btn:hover:not(:disabled) {
   transform: translateY(-3px);
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
 .hint-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.surrender-btn:hover:not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4);
+}
+
+.surrender-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
   transform: none;
@@ -242,6 +270,121 @@
   }
 }
 
+/* Surrender Modal Styles */
+.surrender-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+}
+
+.surrender-modal {
+  background: white;
+  border-radius: 20px;
+  padding: 0;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: modalSlideIn 0.4s ease;
+}
+
+.surrender-modal-header {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ff5252 100%);
+  color: white;
+  padding: 20px 25px;
+  border-radius: 20px 20px 0 0;
+  text-align: center;
+}
+
+.surrender-modal-header h3 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 900;
+}
+
+.surrender-modal-body {
+  padding: 25px;
+  text-align: center;
+}
+
+.surrender-modal-body p {
+  margin: 0 0 15px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+.surrender-warning {
+  font-size: 16px !important;
+  color: #ff6b6b !important;
+  font-weight: 700 !important;
+  background: rgba(255, 107, 107, 0.1);
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 107, 107, 0.3);
+}
+
+.surrender-modal-footer {
+  padding: 0 25px 25px 25px;
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.surrender-confirm-btn {
+  flex: 1;
+  padding: 14px 20px;
+  font-size: 16px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #ff6b6b 0%, #ff5252 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.surrender-cancel-btn {
+  flex: 1;
+  padding: 14px 20px;
+  font-size: 16px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #e0e0e0 0%, #d0d0d0 100%);
+  color: #333;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.surrender-confirm-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+}
+
+.surrender-cancel-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+@keyframes modalSlideIn {
+  from {
+    transform: translateY(-50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
 @media (max-width: 480px) {
   .timer-display {
     font-size: 28px;
@@ -273,5 +416,37 @@
 
   .success-message {
     font-size: 36px;
+  }
+
+  .hint-button-section {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .hint-btn,
+  .surrender-btn {
+    padding: 12px 24px;
+    font-size: 15px;
+  }
+
+  .surrender-modal {
+    width: 95%;
+  }
+
+  .surrender-modal-header h3 {
+    font-size: 20px;
+  }
+
+  .surrender-modal-body p {
+    font-size: 16px;
+  }
+
+  .surrender-warning {
+    font-size: 14px !important;
+    padding: 10px;
+  }
+
+  .surrender-modal-footer {
+    flex-direction: column;
   }
 }

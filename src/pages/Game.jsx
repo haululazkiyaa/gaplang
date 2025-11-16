@@ -56,6 +56,20 @@ function Game() {
     initGame();
   }, [gameId, navigate]);
 
+  // Handle auto-transition for skipped rounds
+  useEffect(() => {
+    const roundData = gameData?.rounds?.[`round${gameData?.currentRound}`];
+    if (roundData?.status === "skipped") {
+      const skipTimeout = setTimeout(() => {
+        // The skipRound function already handles moving to next round
+        // The UI will automatically update via the listenToGame listener
+        console.log("Skip message displayed for 3 seconds");
+      }, 3000);
+
+      return () => clearTimeout(skipTimeout);
+    }
+  }, [gameData?.rounds, gameData?.currentRound]);
+
   if (loading || !gameData || !currentPlayerNumber) {
     return (
       <div className="game-container">
@@ -117,8 +131,16 @@ function Game() {
         />
       );
     }
+  } else if (roundData.status === "skipped") {
+    // Round was skipped due to timeout
+    phaseComponent = (
+      <WaitingPhase
+        message={`⏱️ Waktu habis! Ronde ${currentRound} dilewati. Lanjut ke ronde berikutnya...`}
+        icon="⏭️"
+      />
+    );
   } else {
-    // Between rounds
+    // Between rounds or completed
     phaseComponent = (
       <WaitingPhase message="Memulai ronde berikutnya..." icon="⏭️" />
     );

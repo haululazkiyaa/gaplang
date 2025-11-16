@@ -15,6 +15,7 @@ function GuessWordPhase({
   const [hintsUsed, setHintsUsed] = useState(0);
   const [revealedLetters, setRevealedLetters] = useState([]);
   const [completing, setCompleting] = useState(false);
+  const [showSurrenderModal, setShowSurrenderModal] = useState(false);
 
   const targetWord = roundData.word.toUpperCase();
   const wordLength = targetWord.length;
@@ -93,6 +94,8 @@ function GuessWordPhase({
         if (prev <= 1) {
           clearInterval(timer);
           if (!completing) {
+            // Use completeRound for guessing phase timeout
+            // This marks the round as failed and moves to next turn
             completeRound(
               gameId,
               currentRound,
@@ -191,6 +194,52 @@ function GuessWordPhase({
     }
   };
 
+  const handleSurrender = () => {
+    if (completing) return;
+    setShowSurrenderModal(true);
+  };
+
+  const confirmSurrender = async () => {
+    if (completing) return;
+
+    setShowSurrenderModal(false);
+    setCompleting(true);
+
+    try {
+      await completeRound(
+        gameId,
+        currentRound,
+        "",
+        false,
+        hintsUsed,
+        playerNumber
+      );
+    } catch (error) {
+      console.error("Error surrendering:", error);
+      setCompleting(false);
+    }
+  };
+
+  const cancelSurrender = () => {
+    setShowSurrenderModal(false);
+  };
+
+  // Handle ESC key to close modal
+  useEffect(() => {
+    const handleKeyPress = (event) => {
+      if (event.key === "Escape" && showSurrenderModal) {
+        cancelSurrender();
+      }
+    };
+
+    if (showSurrenderModal) {
+      document.addEventListener("keydown", handleKeyPress);
+      return () => {
+        document.removeEventListener("keydown", handleKeyPress);
+      };
+    }
+  }, [showSurrenderModal]);
+
   const timerColor =
     timeLeft > 60 ? "#50C878" : timeLeft > 20 ? "#FFD700" : "#FF6B6B";
   const gridSize = currentWord?.gridSize || "5x5";
@@ -268,6 +317,13 @@ function GuessWordPhase({
         >
           💡 Gunakan Hint (-10 poin)
         </button>
+        <button
+          className="surrender-btn"
+          onClick={handleSurrender}
+          disabled={completing}
+        >
+          🏳️ Menyerah
+        </button>
         {hintsUsed > 0 && (
           <div className="hints-used">Hint digunakan: {hintsUsed}x</div>
         )}
@@ -276,6 +332,36 @@ function GuessWordPhase({
       {completing && guessedLetters.join("") === targetWord && (
         <div className="success-overlay">
           <div className="success-message">🎉 Benar! 🎉</div>
+        </div>
+      )}
+
+      {showSurrenderModal && (
+        <div className="surrender-modal-overlay">
+          <div className="surrender-modal">
+            <div className="surrender-modal-header">
+              <h3>🏳️ Konfirmasi Menyerah</h3>
+            </div>
+            <div className="surrender-modal-body">
+              <p>Apakah kamu yakin ingin menyerah?</p>
+              <p className="surrender-warning">
+                Kamu akan mendapat 0 poin untuk ronde ini.
+              </p>
+            </div>
+            <div className="surrender-modal-footer">
+              <button
+                className="surrender-confirm-btn"
+                onClick={confirmSurrender}
+              >
+                ✓ Ya, Menyerah
+              </button>
+              <button
+                className="surrender-cancel-btn"
+                onClick={cancelSurrender}
+              >
+                ✕ Batal
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

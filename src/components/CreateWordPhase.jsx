@@ -1,8 +1,7 @@
 import "./CreateWordPhase.css";
 
+import { skipRound, submitWord } from "../services/gameService";
 import { useCallback, useEffect, useState } from "react";
-
-import { submitWord } from "../services/gameService";
 
 function CreateWordPhase({
   gameId,
@@ -55,7 +54,20 @@ function CreateWordPhase({
       setTimeLeft((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
-          handleSubmit();
+
+          // If word and hint are provided, submit normally
+          if (word.trim() && hint.trim()) {
+            handleSubmit();
+          } else {
+            // If no word/hint provided, skip the round
+            if (!submitting) {
+              setSubmitting(true);
+              skipRound(gameId, currentRound, "create").catch((error) => {
+                console.error("Error skipping round:", error);
+                setSubmitting(false);
+              });
+            }
+          }
           return 0;
         }
         return prev - 1;
@@ -63,7 +75,7 @@ function CreateWordPhase({
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [handleSubmit]);
+  }, [handleSubmit, word, hint, submitting, gameId, currentRound]);
 
   const timerColor =
     timeLeft > 15 ? "#50C878" : timeLeft > 5 ? "#FFD700" : "#FF6B6B";
@@ -75,7 +87,15 @@ function CreateWordPhase({
       </div>
 
       <h2 className="phase-title">✏️ Buat Pertanyaan</h2>
-      <p className="phase-subtitle">Buat kata yang sulit untuk temanmu!</p>
+      <p className="phase-subtitle">
+        Buat kata yang sulit untuk temanmu!
+        {timeLeft <= 10 && (
+          <span className="timeout-warning">
+            {" "}
+            ⚠️ {timeLeft <= 5 ? "Waktu hampir habis!" : "Bersiaplah!"}
+          </span>
+        )}
+      </p>
 
       <div className="input-group">
         <label className="input-label">Kata:</label>
