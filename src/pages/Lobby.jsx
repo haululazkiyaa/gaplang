@@ -25,15 +25,21 @@ function Lobby() {
     const initLobby = async () => {
       try {
         const user = await authenticateUser();
+        let hasReceivedData = false;
 
         // Listen to game changes first
         const unsubscribe = listenToGame(gameId, (data) => {
           if (!data) {
-            alert("Game tidak ditemukan!");
-            navigate("/");
+            // Only show error if we're joining an existing game
+            // For new games, wait a bit for Firebase to sync
+            if (location.state?.isJoining) {
+              alert("Game tidak ditemukan!");
+              navigate("/");
+            }
             return;
           }
 
+          hasReceivedData = true;
           setGameData(data);
 
           // Determine current player number
@@ -62,7 +68,18 @@ function Lobby() {
           }
         }
 
-        return () => unsubscribe();
+        // Safety check: if no data received after 5 seconds, show error
+        const timeoutId = setTimeout(() => {
+          if (!hasReceivedData) {
+            alert("Game tidak ditemukan atau koneksi bermasalah!");
+            navigate("/");
+          }
+        }, 5000);
+
+        return () => {
+          unsubscribe();
+          clearTimeout(timeoutId);
+        };
       } catch (error) {
         console.error("Error initializing lobby:", error);
         alert("Gagal join game: " + error.message);
