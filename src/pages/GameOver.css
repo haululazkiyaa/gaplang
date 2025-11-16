@@ -1,0 +1,256 @@
+.gameover-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.confetti {
+  position: absolute;
+  top: 20px;
+  font-size: 100px;
+  animation: confettiFall 3s ease-in-out infinite;
+  opacity: 0.7;
+}
+
+@keyframes confettiFall {
+  0% {
+    transform: translateY(-100px) rotate(0deg);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+.gameover-content {
+  background: white;
+  border-radius: 25px;
+  padding: 40px 30px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  max-width: 500px;
+  width: 100%;
+  animation: slideUp 0.5s ease;
+  position: relative;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.gameover-title {
+  text-align: center;
+  font-size: 36px;
+  font-weight: 900;
+  color: #667eea;
+  margin: 0 0 30px 0;
+  text-shadow: 2px 2px 0px rgba(118, 75, 162, 0.3);
+}
+
+.winner-section {
+  text-align: center;
+  margin-bottom: 30px;
+  padding: 20px;
+  background: linear-gradient(135deg, #fff5e6 0%, #ffe6cc 100%);
+  border-radius: 20px;
+  border: 3px solid #ffd700;
+}
+
+.winner-badge {
+  font-size: 60px;
+  margin-bottom: 10px;
+  animation: bounce 1s ease infinite;
+}
+
+@keyframes bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.winner-name {
+  font-size: 32px;
+  font-weight: 900;
+  color: #333;
+  margin: 10px 0;
+}
+
+.winner-label {
+  font-size: 18px;
+  font-weight: 600;
+  color: #666;
+  margin: 0;
+}
+
+.winner-score {
+  font-size: 48px;
+  font-weight: 900;
+  color: #ffd700;
+  margin-top: 10px;
+  text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.1);
+}
+
+.stats-section {
+  margin-bottom: 30px;
+}
+
+.stats-title {
+  text-align: center;
+  font-size: 20px;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.player-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.stat-card {
+  background: #f8f9fa;
+  border-radius: 15px;
+  padding: 20px;
+  border: 3px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.stat-card.highlight {
+  border-color: #667eea;
+  background: linear-gradient(135deg, #e8ecff 0%, #f0f3ff 100%);
+}
+
+.stat-player-name {
+  font-size: 20px;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.stat-score {
+  font-size: 28px;
+  font-weight: 900;
+  color: #667eea;
+  margin-bottom: 12px;
+}
+
+.stat-details {
+  display: flex;
+  justify-content: space-around;
+  gap: 20px;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.stat-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #666;
+}
+
+.stat-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: #333;
+}
+
+.button-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.btn {
+  padding: 16px 24px;
+  font-size: 18px;
+  font-weight: 700;
+  border: none;
+  border-radius: 15px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.btn-secondary {
+  background: white;
+  color: #667eea;
+  border: 3px solid #667eea;
+}
+
+.loading {
+  text-align: center;
+  font-size: 24px;
+  font-weight: 700;
+  color: white;
+  padding: 50px;
+}
+
+@media (max-width: 480px) {
+  .gameover-content {
+    padding: 30px 20px;
+  }
+
+  .gameover-title {
+    font-size: 28px;
+  }
+
+  .winner-badge {
+    font-size: 50px;
+  }
+
+  .winner-name {
+    font-size: 26px;
+  }
+
+  .winner-score {
+    font-size: 36px;
+  }
+
+  .stat-player-name {
+    font-size: 18px;
+  }
+
+  .stat-score {
+    font-size: 24px;
+  }
+
+  .btn {
+    font-size: 16px;
+    padding: 14px 20px;
+  }
+}

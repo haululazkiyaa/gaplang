@@ -1,0 +1,246 @@
+.lobby-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+}
+
+.lobby-content {
+  background: white;
+  border-radius: 25px;
+  padding: 40px 30px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  max-width: 500px;
+  width: 100%;
+  animation: slideUp 0.5s ease;
+}
+
+.lobby-title {
+  text-align: center;
+  font-size: 32px;
+  font-weight: 900;
+  color: #667eea;
+  margin: 0 0 30px 0;
+}
+
+.players-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.player-card {
+  flex: 1;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
+  border-radius: 20px;
+  padding: 20px;
+  text-align: center;
+  transition: all 0.3s ease;
+  border: 3px solid transparent;
+  position: relative;
+}
+
+.player-card.ready {
+  background: linear-gradient(135deg, #d4fc79 0%, #96e6a1 100%);
+  border-color: #50c878;
+  transform: scale(1.05);
+}
+
+.player-icon {
+  font-size: 48px;
+  margin-bottom: 10px;
+}
+
+.player-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 8px;
+  word-break: break-word;
+}
+
+.player-status {
+  font-size: 14px;
+  font-weight: 600;
+  color: #666;
+}
+
+.host-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 12px;
+  background: #ffd700;
+  color: #333;
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-weight: 700;
+}
+
+.vs-divider {
+  font-size: 24px;
+  font-weight: 900;
+  color: #667eea;
+  text-shadow: 2px 2px 0px rgba(118, 75, 162, 0.3);
+}
+
+.share-section {
+  background: #f8f9fa;
+  border-radius: 15px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.share-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #666;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.link-container {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.game-link {
+  flex: 1;
+  padding: 12px 15px;
+  font-size: 14px;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  background: white;
+  font-family: monospace;
+}
+
+.copy-btn {
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 700;
+  background: #667eea;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.copy-btn:hover {
+  background: #764ba2;
+  transform: scale(1.05);
+}
+
+.game-code {
+  text-align: center;
+  font-size: 16px;
+  color: #666;
+  margin: 0;
+}
+
+.game-code strong {
+  color: #667eea;
+  font-size: 18px;
+}
+
+.ready-section {
+  text-align: center;
+}
+
+.btn-ready {
+  width: 100%;
+  padding: 18px 24px;
+  font-size: 20px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 15px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.btn-ready:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.btn-ready.ready {
+  background: linear-gradient(135deg, #50c878 0%, #96e6a1 100%);
+}
+
+.starting-game {
+  text-align: center;
+  padding: 20px;
+}
+
+.starting-game p {
+  font-size: 18px;
+  font-weight: 700;
+  color: #667eea;
+  margin: 15px 0 0 0;
+}
+
+.spinner {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #667eea;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+  margin: 0 auto;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.loading {
+  text-align: center;
+  font-size: 24px;
+  font-weight: 700;
+  color: #667eea;
+}
+
+@media (max-width: 480px) {
+  .lobby-content {
+    padding: 30px 20px;
+  }
+
+  .lobby-title {
+    font-size: 28px;
+  }
+
+  .players-section {
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .vs-divider {
+    transform: rotate(90deg);
+  }
+
+  .player-card {
+    width: 100%;
+  }
+
+  .link-container {
+    flex-direction: column;
+  }
+
+  .copy-btn {
+    width: 100%;
+  }
+}

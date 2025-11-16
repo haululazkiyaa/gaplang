@@ -1,0 +1,15 @@
+{
+  "rules": {
+    "games": {
+      "$gameId": {
+        ".read": "auth != null",
+        ".write": "auth != null && (
+          !data.exists() || 
+          data.child('players/player1/id').val() === auth.uid || 
+          data.child('players/player2/id').val() === auth.uid
+        )",
+        ".indexOn": ["createdAt", "status"]
+      }
+    }
+  }
+}
