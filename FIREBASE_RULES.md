@@ -37,20 +37,20 @@ Setelah testing selesai, gunakan rules yang lebih strict:
       "$gameId": {
         ".read": "auth != null",
         ".write": "auth != null && (
-          !data.exists() || 
-          data.child('players/player1/id').val() === auth.uid || 
+          !data.exists() ||
+          data.child('players/player1/id').val() === auth.uid ||
           data.child('players/player2/id').val() === auth.uid
         )",
         "players": {
           "player1": {
             ".write": "auth != null && (
-              !data.exists() || 
+              !data.exists() ||
               data.child('id').val() === auth.uid
             )"
           },
           "player2": {
             ".write": "auth != null && (
-              !data.exists() || 
+              !data.exists() ||
               data.child('id').val() === auth.uid ||
               root.child('games').child($gameId).child('players').child('player1').child('id').val() === auth.uid
             )"

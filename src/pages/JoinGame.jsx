@@ -1,20 +1,24 @@
-import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import './JoinGame.css';
+import "./JoinGame.css";
+
+import { useNavigate, useParams } from "react-router-dom";
+
+import { useState } from "react";
 
 function JoinGame() {
   const { gameId } = useParams();
   const navigate = useNavigate();
-  const [name, setName] = useState('');
+  const [name, setName] = useState("");
 
   const handleJoin = async () => {
     if (!name.trim()) {
-      alert('Masukkan nama kamu dulu!');
+      alert("Masukkan nama kamu dulu!");
       return;
     }
 
     // Navigate to lobby with player name
-    navigate(`/lobby/${gameId}`, { state: { playerName: name.trim(), isJoining: true } });
+    navigate(`/lobby/${gameId}`, {
+      state: { playerName: name.trim(), isJoining: true },
+    });
   };
 
   return (
@@ -26,9 +30,7 @@ function JoinGame() {
         </div>
 
         <div className="info-box">
-          <p className="info-text">
-            Temanmu mengundangmu untuk bermain!
-          </p>
+          <p className="info-text">Temanmu mengundangmu untuk bermain!</p>
           <p className="game-code">
             Kode Game: <strong>{gameId}</strong>
           </p>
@@ -43,7 +45,7 @@ function JoinGame() {
             onChange={(e) => setName(e.target.value)}
             maxLength={20}
             onKeyPress={(e) => {
-              if (e.key === 'Enter') {
+              if (e.key === "Enter") {
                 handleJoin();
               }
             }}
@@ -57,10 +59,7 @@ function JoinGame() {
             🎯 Bergabung
           </button>
 
-          <button
-            className="btn btn-outline"
-            onClick={() => navigate('/')}
-          >
+          <button className="btn btn-outline" onClick={() => navigate("/")}>
             ← Kembali
           </button>
         </div>
