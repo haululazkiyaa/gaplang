@@ -32,6 +32,18 @@
   line-height: 1.5;
 }
 
+.free-hints-info {
+  font-size: 14px;
+  color: #ffa500;
+  font-weight: 700;
+  margin-top: 8px;
+  text-align: center;
+  background: rgba(255, 215, 0, 0.1);
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 215, 0, 0.3);
+}
+
 .answer-section {
   margin-bottom: 30px;
   text-align: center;
@@ -69,6 +81,29 @@
 .answer-box.revealed {
   border-color: #50c878;
   background: linear-gradient(135deg, #d4fc79 0%, #96e6a1 100%);
+}
+
+.answer-box.free-hint {
+  border-color: #ffd700;
+  background: linear-gradient(135deg, #fff9c4 0%, #fff3a0 100%);
+  box-shadow: 0 0 8px rgba(255, 215, 0, 0.4);
+  position: relative;
+}
+
+.answer-box.free-hint::after {
+  content: "✨";
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  font-size: 12px;
+  background: #ffd700;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid white;
 }
 
 .backspace-btn {

@@ -195,11 +195,15 @@ export const submitWord = async (
   // Generate letter grid
   const letters = generateLetterGrid(word);
 
+  // Generate free hints based on word length
+  const freeHints = generateFreeHints(word);
+
   await set(ref(database, `games/${gameId}/currentWord`), {
     hint,
     gridSize: calculateGridSize(word.length),
     letters,
     guessedLetters: [],
+    freeHints, // Add free hints to the data
     timeLeft: 90,
   });
 };
@@ -296,6 +300,53 @@ export const listenToGame = (gameId, callback) => {
       callback(null);
     }
   );
+};
+
+// Helper function to generate free hints based on word length
+const generateFreeHints = (word) => {
+  const wordLength = word.length;
+  let numberOfHints = 0;
+
+  // Determine number of free hints based on word length
+  if (wordLength <= 4) {
+    numberOfHints = 1; // Short words: 1 free hint
+  } else if (wordLength <= 7) {
+    numberOfHints = 2; // Medium words: 2 free hints
+  } else if (wordLength <= 10) {
+    numberOfHints = 3; // Long words: 3 free hints
+  } else {
+    numberOfHints = Math.floor(wordLength / 3); // Very long words: 1/3 of letters
+  }
+
+  // Generate random positions for free hints
+  const positions = [];
+  const wordUpper = word.toUpperCase();
+
+  // Avoid giving hints for the first and last letters to maintain some challenge
+  const availablePositions = [];
+  for (let i = 1; i < wordLength - 1; i++) {
+    availablePositions.push(i);
+  }
+
+  // If word is very short, include first or last position
+  if (wordLength <= 4) {
+    availablePositions.push(0);
+    if (wordLength > 2) {
+      availablePositions.push(wordLength - 1);
+    }
+  }
+
+  // Randomly select positions
+  const shuffled = availablePositions.sort(() => Math.random() - 0.5);
+  for (let i = 0; i < Math.min(numberOfHints, shuffled.length); i++) {
+    const position = shuffled[i];
+    positions.push({
+      index: position,
+      letter: wordUpper[position],
+    });
+  }
+
+  return positions;
 };
 
 // Helper function to generate letter grid

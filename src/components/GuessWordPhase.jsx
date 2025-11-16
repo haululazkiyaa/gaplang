@@ -19,6 +19,33 @@ function GuessWordPhase({
   const targetWord = roundData.word.toUpperCase();
   const wordLength = targetWord.length;
 
+  // Initialize guessed letters with free hints
+  useEffect(() => {
+    const freeHints = currentWord?.freeHints || [];
+
+    if (freeHints.length > 0 && guessedLetters.length === 0) {
+      const initialGuesses = new Array(wordLength).fill("");
+
+      // Fill in the free hints
+      freeHints.forEach((hint) => {
+        if (hint.index < wordLength) {
+          initialGuesses[hint.index] = hint.letter;
+        }
+      });
+
+      setGuessedLetters(initialGuesses);
+
+      // Also add these to revealed letters for styling
+      setRevealedLetters(
+        freeHints.map((hint) => ({
+          index: hint.index,
+          letter: hint.letter,
+          isFree: true,
+        }))
+      );
+    }
+  }, [currentWord?.freeHints, wordLength, guessedLetters.length]);
+
   const checkAnswer = useCallback(
     async (letters) => {
       if (completing) return;
@@ -85,23 +112,46 @@ function GuessWordPhase({
   }, [gameId, currentRound, hintsUsed, playerNumber, completing]);
 
   useEffect(() => {
-    if (guessedLetters.length === wordLength) {
+    // Check if all positions are filled (including free hints)
+    const filledCount = guessedLetters.filter((letter) => letter).length;
+    if (filledCount === wordLength) {
       checkAnswer(guessedLetters);
     }
   }, [guessedLetters, wordLength, checkAnswer]);
 
   const handleLetterClick = (letter) => {
     if (completing) return;
-    if (guessedLetters.length >= wordLength) return;
 
-    setGuessedLetters([...guessedLetters, letter]);
+    // Find the first empty position (not filled and not a free hint)
+    const newGuessed = [...guessedLetters];
+    for (let i = 0; i < wordLength; i++) {
+      if (!newGuessed[i]) {
+        newGuessed[i] = letter;
+        break;
+      }
+    }
+
+    setGuessedLetters(newGuessed);
   };
 
   const handleBackspace = () => {
     if (completing) return;
-    if (guessedLetters.length === 0) return;
 
-    setGuessedLetters(guessedLetters.slice(0, -1));
+    const newGuessed = [...guessedLetters];
+
+    // Find the last filled position that is not a free hint and remove it
+    for (let i = wordLength - 1; i >= 0; i--) {
+      const isRevealedFreeHint = revealedLetters.some(
+        (r) => r.index === i && r.isFree
+      );
+
+      if (newGuessed[i] && !isRevealedFreeHint) {
+        newGuessed[i] = "";
+        break;
+      }
+    }
+
+    setGuessedLetters(newGuessed);
   };
 
   const handleUseHint = async () => {
@@ -110,12 +160,24 @@ function GuessWordPhase({
 
     try {
       const word = await getHint(gameId, currentRound);
-      const nextIndex = revealedLetters.length;
+
+      // Find the next empty position that doesn't have a free hint
+      let nextIndex = -1;
+      for (let i = 0; i < wordLength; i++) {
+        const hasRevealedLetter = revealedLetters.some((r) => r.index === i);
+        if (!hasRevealedLetter) {
+          nextIndex = i;
+          break;
+        }
+      }
+
+      if (nextIndex === -1) return; // No more hints available
+
       const correctLetter = word.toUpperCase()[nextIndex];
 
       setRevealedLetters([
         ...revealedLetters,
-        { index: nextIndex, letter: correctLetter },
+        { index: nextIndex, letter: correctLetter, isFree: false },
       ]);
 
       // Auto-fill the revealed letter
@@ -144,6 +206,11 @@ function GuessWordPhase({
       <div className="hint-section">
         <div className="hint-label">💡 Hint:</div>
         <div className="hint-text">{currentWord?.hint || roundData.hint}</div>
+        {currentWord?.freeHints && currentWord.freeHints.length > 0 && (
+          <div className="free-hints-info">
+            ✨ {currentWord.freeHints.length} huruf gratis sudah diberikan!
+          </div>
+        )}
       </div>
 
       <div className="answer-section">
@@ -151,13 +218,14 @@ function GuessWordPhase({
           {Array.from({ length: wordLength }).map((_, index) => {
             const revealed = revealedLetters.find((r) => r.index === index);
             const letter = guessedLetters[index] || "";
+            const isFreeHint = revealed?.isFree || false;
 
             return (
               <div
                 key={index}
                 className={`answer-box ${letter ? "filled" : ""} ${
                   revealed ? "revealed" : ""
-                }`}
+                } ${isFreeHint ? "free-hint" : ""}`}
               >
                 {letter}
               </div>
