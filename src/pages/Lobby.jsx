@@ -72,17 +72,20 @@ function Lobby() {
           } catch (error) {
             console.error("Error joining game:", error);
             alert("Gagal join game: " + error.message);
+            unsubscribe();
             navigate("/");
+            return;
           }
         }
 
-        // Safety check: if no data received after 5 seconds, show error
+        // Safety check: if no data received after 8 seconds, show error
+        // (Longer timeout to account for joinGame retry mechanism)
         const timeoutId = setTimeout(() => {
           if (!hasReceivedData) {
             alert("Game tidak ditemukan atau koneksi bermasalah!");
             navigate("/");
           }
-        }, 5000);
+        }, 8000);
 
         return () => {
           unsubscribe();

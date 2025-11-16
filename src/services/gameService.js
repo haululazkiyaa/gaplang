@@ -87,31 +87,44 @@ export const createGame = async (playerId, playerName) => {
 
 // Join existing game
 export const joinGame = async (gameId, playerId, playerName) => {
-  const gameRef = ref(database, `games/${gameId}`);
-  const snapshot = await get(gameRef);
+  // Retry logic for Firebase sync delay
+  let attempts = 0;
+  const maxAttempts = 3;
+  const retryDelay = 1000; // 1 second
 
-  if (!snapshot.exists()) {
-    throw new Error("Game not found");
+  while (attempts < maxAttempts) {
+    const gameRef = ref(database, `games/${gameId}`);
+    const snapshot = await get(gameRef);
+
+    if (snapshot.exists()) {
+      const game = snapshot.val();
+      if (game.players?.player2) {
+        throw new Error("Game is full");
+      }
+
+      await update(gameRef, {
+        "players/player2": {
+          id: playerId,
+          name: playerName,
+          isHost: false,
+          ready: false,
+        },
+      });
+
+      // Setup disconnect handler for player2
+      await setupDisconnectHandlers(gameId, "player2");
+
+      return game;
+    }
+
+    attempts++;
+    if (attempts < maxAttempts) {
+      // Wait before retrying
+      await new Promise((resolve) => setTimeout(resolve, retryDelay));
+    }
   }
 
-  const game = snapshot.val();
-  if (game.players?.player2) {
-    throw new Error("Game is full");
-  }
-
-  await update(gameRef, {
-    "players/player2": {
-      id: playerId,
-      name: playerName,
-      isHost: false,
-      ready: false,
-    },
-  });
-
-  // Setup disconnect handler for player2
-  await setupDisconnectHandlers(gameId, "player2");
-
-  return game;
+  throw new Error("Game not found");
 };
 
 // Set player ready status
