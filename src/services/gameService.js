@@ -1,142 +1,154 @@
+import { auth, database } from "./firebase";
 import {
   get,
   onDisconnect,
   onValue,
   push,
   ref,
-  remove,
   set,
   update,
 } from "firebase/database";
 
-import { database } from "./firebase";
+// Utility function to ensure user is authenticated
+const ensureAuthenticated = async () => {
+  if (!auth.currentUser) {
+    throw new Error("User not authenticated");
+  }
+  return auth.currentUser;
+};
 
 // Helper function to handle player promotion when host disconnects
 const setupDisconnectHandlers = async (gameId, playerNumber) => {
-  const playerRef = ref(database, `games/${gameId}/players/${playerNumber}`);
+  try {
+    console.log("Setting up disconnect handler for:", gameId, playerNumber);
+    const playerRef = ref(database, `games/${gameId}/players/${playerNumber}`);
 
-  if (playerNumber === "player1") {
-    // If player1 (host) disconnects, promote player2 or delete game
-    onDisconnect(playerRef)
-      .remove()
-      .then(async () => {
-        const gameRef = ref(database, `games/${gameId}`);
-        const snapshot = await get(gameRef);
-
-        if (snapshot.exists()) {
-          const data = snapshot.val();
-
-          if (data.players?.player2) {
-            // Promote player2 to player1
-            await update(gameRef, {
-              players: {
-                player1: {
-                  ...data.players.player2,
-                  isHost: true,
-                  ready: false, // Reset ready status
-                },
-                player2: null,
-              },
-            });
-          } else {
-            // No player2, delete the entire game
-            await remove(gameRef);
-          }
-        }
-      });
-  } else {
-    // If player2 disconnects, just remove them
-    onDisconnect(playerRef).remove();
+    if (playerNumber === "player1") {
+      // If player1 (host) disconnects, promote player2 or delete game
+      await onDisconnect(playerRef).remove();
+      console.log("Disconnect handler set for player1");
+    } else {
+      // If player2 disconnects, just remove them
+      await onDisconnect(playerRef).remove();
+      console.log("Disconnect handler set for player2");
+    }
+  } catch (error) {
+    console.error("Error setting up disconnect handlers:", error);
+    // Don't throw error here, as it's not critical for game functionality
   }
 };
 
 // Create a new game
 export const createGame = async (playerId, playerName) => {
-  const gamesRef = ref(database, "games");
-  const newGameRef = push(gamesRef);
-  const gameId = newGameRef.key;
+  try {
+    console.log("Creating game for player:", playerId, playerName);
 
-  await set(newGameRef, {
-    id: gameId,
-    status: "waiting",
-    players: {
-      player1: {
-        id: playerId,
-        name: playerName,
-        isHost: true,
-        ready: false,
+    // Ensure user is authenticated
+    await ensureAuthenticated();
+
+    const gamesRef = ref(database, "games");
+    const newGameRef = push(gamesRef);
+    const gameId = newGameRef.key;
+
+    const gameData = {
+      id: gameId,
+      status: "waiting",
+      players: {
+        player1: {
+          id: playerId,
+          name: playerName,
+          isHost: true,
+          ready: false,
+        },
+        player2: null,
       },
-      player2: null,
-    },
-    words: {
-      player1: null,
-      player2: null,
-    },
-    guesses: {
-      player1: [],
-      player2: [],
-    },
-    createdAt: Date.now(),
-  });
+      words: {
+        player1: null,
+        player2: null,
+      },
+      guesses: {
+        player1: [],
+        player2: [],
+      },
+      createdAt: Date.now(),
+    };
 
-  // Setup disconnect handler for player1
-  await setupDisconnectHandlers(gameId, "player1");
+    console.log("Setting game data:", gameData);
+    await set(newGameRef, gameData);
+    console.log("Game created successfully with ID:", gameId);
 
-  return gameId;
+    // Setup disconnect handler for player1
+    await setupDisconnectHandlers(gameId, "player1");
+
+    return gameId;
+  } catch (error) {
+    console.error("Error creating game:", error);
+    throw new Error("Gagal membuat game: " + error.message);
+  }
 };
 
 // Join existing game
 export const joinGame = async (gameId, playerId, playerName) => {
-  const gameRef = ref(database, `games/${gameId}`);
+  console.log(
+    "Attempting to join game:",
+    gameId,
+    "with player:",
+    playerId,
+    playerName
+  );
 
-  // Use onValue to check if game exists (uses same cache as listeners)
-  return new Promise((resolve, reject) => {
-    const checkGame = onValue(
-      gameRef,
-      (snapshot) => {
-        // Unsubscribe immediately after first read
-        checkGame();
+  try {
+    // Ensure user is authenticated
+    await ensureAuthenticated();
 
-        if (!snapshot.exists()) {
-          reject(new Error("Game not found"));
-          return;
-        }
+    const gameRef = ref(database, `games/${gameId}`);
 
-        const game = snapshot.val();
+    // Use get() instead of onValue for one-time read to avoid timing issues
+    console.log("Fetching game data...");
+    const snapshot = await get(gameRef);
 
-        // Check if game is full
-        if (game.players?.player2) {
-          reject(new Error("Game is full"));
-          return;
-        }
+    if (!snapshot.exists()) {
+      console.log("Game not found in database");
+      throw new Error("Game tidak ditemukan");
+    }
 
-        // Update player2 data
-        update(gameRef, {
-          "players/player2": {
-            id: playerId,
-            name: playerName,
-            isHost: false,
-            ready: false,
-          },
-        })
-          .then(() => {
-            // Setup disconnect handler for player2
-            setupDisconnectHandlers(gameId, "player2");
-            resolve(game);
-          })
-          .catch((error) => {
-            reject(error);
-          });
+    const game = snapshot.val();
+    console.log("Game found:", game);
+
+    // Check if game is full
+    if (game.players?.player2) {
+      console.log("Game is full");
+      throw new Error("Game penuh");
+    }
+
+    // Check if player is already in the game as player1
+    if (game.players?.player1?.id === playerId) {
+      console.log("Player already in game as player1");
+      throw new Error("Kamu sudah ada di game ini");
+    }
+
+    // Update player2 data
+    console.log("Updating player2 data...");
+    await update(gameRef, {
+      "players/player2": {
+        id: playerId,
+        name: playerName,
+        isHost: false,
+        ready: false,
       },
-      (error) => {
-        checkGame();
-        reject(error);
-      }
-    );
-  });
-};
+    });
 
-// Set player ready status
+    console.log("Player2 updated successfully");
+
+    // Setup disconnect handler for player2
+    await setupDisconnectHandlers(gameId, "player2");
+
+    return game;
+  } catch (error) {
+    console.error("Error joining game:", error);
+    throw error;
+  }
+}; // Set player ready status
 export const setPlayerReady = async (gameId, playerNumber, ready) => {
   await update(ref(database, `games/${gameId}/players/${playerNumber}`), {
     ready,
@@ -259,14 +271,31 @@ export const completeRound = async (
 
 // Listen to game changes
 export const listenToGame = (gameId, callback) => {
+  console.log("Setting up listener for game:", gameId);
   const gameRef = ref(database, `games/${gameId}`);
-  return onValue(gameRef, (snapshot) => {
-    if (snapshot.exists()) {
-      callback(snapshot.val());
-    } else {
+  return onValue(
+    gameRef,
+    (snapshot) => {
+      console.log(
+        "Game listener triggered for:",
+        gameId,
+        "exists:",
+        snapshot.exists()
+      );
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        console.log("Game data received:", data);
+        callback(data);
+      } else {
+        console.log("Game data is null, game may not exist");
+        callback(null);
+      }
+    },
+    (error) => {
+      console.error("Game listener error:", error);
       callback(null);
     }
-  });
+  );
 };
 
 // Helper function to generate letter grid

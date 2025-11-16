@@ -26,24 +26,47 @@ function Lobby() {
       try {
         const user = await authenticateUser();
 
+        // Wait a bit to ensure authentication is fully processed
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+
         // If coming from join game, join first before setting up listener
         if (location.state?.playerName && location.state?.isJoining) {
           try {
             await joinGame(gameId, user.uid, location.state.playerName);
           } catch (error) {
             console.error("Error joining game:", error);
-            alert("Gagal join game: " + error.message);
+            let errorMessage = "Gagal join game";
+            if (error.message.includes("Game tidak ditemukan")) {
+              errorMessage = "Game tidak ditemukan! Pastikan kode game benar.";
+            } else if (error.message.includes("Game penuh")) {
+              errorMessage = "Game sudah penuh! Tidak bisa bergabung.";
+            } else if (error.message.includes("sudah ada")) {
+              errorMessage = "Kamu sudah ada di game ini!";
+            } else {
+              errorMessage = `Gagal join game: ${error.message}`;
+            }
+            alert(errorMessage);
             navigate("/");
             return;
           }
         }
 
         // Setup listener to game changes
+        let gameNotFoundTimeout;
         const unsubscribe = listenToGame(gameId, (data) => {
           if (!data) {
-            alert("Game tidak ditemukan!");
-            navigate("/");
+            // Give a moment for data to sync, sometimes Firebase takes time
+            gameNotFoundTimeout = setTimeout(() => {
+              alert("Game tidak ditemukan! Periksa kode game atau coba lagi.");
+              navigate("/");
+            }, 1000);
             return;
+          }
+
+          // Clear timeout if game data is found
+          if (gameNotFoundTimeout) {
+            clearTimeout(gameNotFoundTimeout);
+            gameNotFoundTimeout = null;
           }
 
           setGameData(data);

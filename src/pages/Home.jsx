@@ -21,11 +21,23 @@ function Home() {
     try {
       setLoading(true);
       const user = await authenticateUser();
+
+      // Wait a bit to ensure authentication is processed
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
       const gameId = await createGame(user.uid, name.trim());
       navigate(`/lobby/${gameId}`);
     } catch (error) {
       console.error("Error creating game:", error);
-      alert("Gagal membuat game. Coba lagi!");
+      let errorMessage = "Gagal membuat game";
+      if (error.message.includes("koneksi internet")) {
+        errorMessage = "Periksa koneksi internet Anda dan coba lagi!";
+      } else if (error.message.includes("autentikasi")) {
+        errorMessage = "Gagal autentikasi. Refresh halaman dan coba lagi!";
+      } else {
+        errorMessage = `Gagal membuat game: ${error.message}`;
+      }
+      alert(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -46,12 +58,16 @@ function Home() {
       setLoading(true);
       // Authenticate first before navigating
       await authenticateUser();
+
+      // Wait a bit to ensure authentication is processed
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
       navigate(`/lobby/${gameCode.trim()}`, {
         state: { playerName: name.trim(), isJoining: true },
       });
     } catch (error) {
       console.error("Error authenticating:", error);
-      alert("Gagal autentikasi. Coba lagi!");
+      alert("Gagal autentikasi. Refresh halaman dan coba lagi!");
     } finally {
       setLoading(false);
     }
@@ -83,7 +99,7 @@ function Home() {
                 onClick={handleCreateGame}
                 disabled={loading}
               >
-                {loading ? "⏳ Membuat..." : "🎯 Buat Game Baru"}
+                {loading ? "⏳ Membuat game..." : "🎯 Buat Game Baru"}
               </button>
               <button
                 className="btn btn-secondary"
@@ -109,7 +125,7 @@ function Home() {
                   onClick={handleJoinGame}
                   disabled={loading}
                 >
-                  ✓ Join Game
+                  {loading ? "⏳ Bergabung..." : "✓ Join Game"}
                 </button>
                 <button
                   className="btn btn-outline"
