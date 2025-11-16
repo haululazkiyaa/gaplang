@@ -19,6 +19,7 @@ function Lobby() {
   const [currentPlayerNumber, setCurrentPlayerNumber] = useState(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [gameStarting, setGameStarting] = useState(false);
 
   useEffect(() => {
     const initLobby = async () => {
@@ -72,23 +73,32 @@ function Lobby() {
     initLobby();
   }, [gameId, navigate, location]);
 
+  // Auto-start game when both players are ready
+  useEffect(() => {
+    if (!gameData || !currentPlayerNumber || gameStarting) return;
+
+    const player1Ready = gameData.players?.player1?.ready;
+    const player2Ready = gameData.players?.player2?.ready;
+
+    if (player1Ready && player2Ready && gameData.status === "waiting") {
+      const timer = setTimeout(() => {
+        setGameStarting(true);
+        startGame(gameId).catch((error) => {
+          console.error("Error starting game:", error);
+          setGameStarting(false);
+        });
+      }, 1500);
+
+      return () => clearTimeout(timer);
+    }
+  }, [gameData, currentPlayerNumber, gameStarting, gameId]);
+
   const handleReady = async () => {
     if (!currentPlayerNumber) return;
 
     try {
       const newReadyState = !gameData.players?.[currentPlayerNumber]?.ready;
       await setPlayerReady(gameId, currentPlayerNumber, newReadyState);
-
-      // If both players are ready, start the game
-      if (
-        newReadyState &&
-        gameData.players?.player1?.ready &&
-        gameData.players?.player2?.ready
-      ) {
-        setTimeout(() => {
-          startGame(gameId);
-        }, 1000);
-      }
     } catch (error) {
       console.error("Error setting ready:", error);
       alert("Gagal mengubah status ready!");

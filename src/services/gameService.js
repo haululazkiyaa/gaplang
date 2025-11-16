@@ -4,39 +4,83 @@ import {
   onValue,
   push,
   ref,
+  remove,
   set,
   update,
 } from "firebase/database";
 
 import { database } from "./firebase";
 
-// Create a new game
-export const createGame = async (hostId, hostName) => {
-  const gameRef = push(ref(database, "games"));
-  const gameId = gameRef.key;
+// Helper function to handle player promotion when host disconnects
+const setupDisconnectHandlers = async (gameId, playerNumber) => {
+  const playerRef = ref(database, `games/${gameId}/players/${playerNumber}`);
 
-  const gameData = {
-    createdAt: Date.now(),
+  if (playerNumber === "player1") {
+    // If player1 (host) disconnects, promote player2 or delete game
+    onDisconnect(playerRef)
+      .remove()
+      .then(async () => {
+        const gameRef = ref(database, `games/${gameId}`);
+        const snapshot = await get(gameRef);
+
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+
+          if (data.players?.player2) {
+            // Promote player2 to player1
+            await update(gameRef, {
+              players: {
+                player1: {
+                  ...data.players.player2,
+                  isHost: true,
+                  ready: false, // Reset ready status
+                },
+                player2: null,
+              },
+            });
+          } else {
+            // No player2, delete the entire game
+            await remove(gameRef);
+          }
+        }
+      });
+  } else {
+    // If player2 disconnects, just remove them
+    onDisconnect(playerRef).remove();
+  }
+};
+
+// Create a new game
+export const createGame = async (playerId, playerName) => {
+  const gamesRef = ref(database, "games");
+  const newGameRef = push(gamesRef);
+  const gameId = newGameRef.key;
+
+  await set(newGameRef, {
+    id: gameId,
     status: "waiting",
-    currentRound: 0,
-    currentTurn: null,
-    totalRounds: 10,
     players: {
       player1: {
-        id: hostId,
-        name: hostName,
-        ready: false,
-        score: 0,
+        id: playerId,
+        name: playerName,
         isHost: true,
+        ready: false,
       },
+      player2: null,
     },
-    rounds: {},
-  };
+    words: {
+      player1: null,
+      player2: null,
+    },
+    guesses: {
+      player1: [],
+      player2: [],
+    },
+    createdAt: Date.now(),
+  });
 
-  await set(gameRef, gameData);
-
-  // Handle disconnect
-  onDisconnect(ref(database, `games/${gameId}/players/player1`)).remove();
+  // Setup disconnect handler for player1
+  await setupDisconnectHandlers(gameId, "player1");
 
   return gameId;
 };
@@ -50,26 +94,24 @@ export const joinGame = async (gameId, playerId, playerName) => {
     throw new Error("Game not found");
   }
 
-  const gameData = snapshot.val();
-
-  if (gameData.players?.player2) {
+  const game = snapshot.val();
+  if (game.players?.player2) {
     throw new Error("Game is full");
   }
 
-  await update(ref(database, `games/${gameId}/players`), {
-    player2: {
+  await update(gameRef, {
+    "players/player2": {
       id: playerId,
       name: playerName,
-      ready: false,
-      score: 0,
       isHost: false,
+      ready: false,
     },
   });
 
-  // Handle disconnect
-  onDisconnect(ref(database, `games/${gameId}/players/player2`)).remove();
+  // Setup disconnect handler for player2
+  await setupDisconnectHandlers(gameId, "player2");
 
-  return gameData;
+  return game;
 };
 
 // Set player ready status
