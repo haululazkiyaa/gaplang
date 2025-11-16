@@ -31,7 +31,7 @@ function Home() {
     }
   };
 
-  const handleJoinGame = () => {
+  const handleJoinGame = async () => {
     if (!name.trim()) {
       alert("Masukkan nama kamu dulu!");
       return;
@@ -42,9 +42,19 @@ function Home() {
       return;
     }
 
-    navigate(`/lobby/${gameCode.trim()}`, {
-      state: { playerName: name.trim() },
-    });
+    try {
+      setLoading(true);
+      // Authenticate first before navigating
+      await authenticateUser();
+      navigate(`/lobby/${gameCode.trim()}`, {
+        state: { playerName: name.trim(), isJoining: true },
+      });
+    } catch (error) {
+      console.error("Error authenticating:", error);
+      alert("Gagal autentikasi. Coba lagi!");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

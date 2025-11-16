@@ -25,12 +25,7 @@ function Lobby() {
       try {
         const user = await authenticateUser();
 
-        // If coming from join game, join the game
-        if (location.state?.playerName) {
-          await joinGame(gameId, user.uid, location.state.playerName);
-        }
-
-        // Listen to game changes
+        // Listen to game changes first
         const unsubscribe = listenToGame(gameId, (data) => {
           if (!data) {
             alert("Game tidak ditemukan!");
@@ -54,6 +49,18 @@ function Lobby() {
         });
 
         setLoading(false);
+
+        // If coming from join game, join the game AFTER listener is set
+        if (location.state?.playerName && location.state?.isJoining) {
+          try {
+            await joinGame(gameId, user.uid, location.state.playerName);
+          } catch (error) {
+            console.error("Error joining game:", error);
+            alert("Gagal join game: " + error.message);
+            navigate("/");
+          }
+        }
+
         return () => unsubscribe();
       } catch (error) {
         console.error("Error initializing lobby:", error);
@@ -89,8 +96,8 @@ function Lobby() {
   };
 
   const copyGameLink = () => {
-    const link = window.location.href;
-    navigator.clipboard.writeText(link);
+    const joinLink = `${window.location.origin}/join/${gameId}`;
+    navigator.clipboard.writeText(joinLink);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -152,7 +159,7 @@ function Lobby() {
               <input
                 type="text"
                 className="game-link"
-                value={window.location.href}
+                value={`${window.location.origin}/join/${gameId}`}
                 readOnly
               />
               <button className="copy-btn" onClick={copyGameLink}>
@@ -170,11 +177,11 @@ function Lobby() {
             {!bothReady ? (
               <button
                 className={`btn-ready ${
-                  gameData.players[currentPlayerNumber]?.ready ? "ready" : ""
+                  gameData.players?.[currentPlayerNumber]?.ready ? "ready" : ""
                 }`}
                 onClick={handleReady}
               >
-                {gameData.players[currentPlayerNumber]?.ready
+                {gameData.players?.[currentPlayerNumber]?.ready
                   ? "✓ Ready!"
                   : "👍 Siap Main!"}
               </button>
