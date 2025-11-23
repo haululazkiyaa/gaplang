@@ -1,4 +1,4 @@
-# 🎮 GAPLANG - Game Tebak Kata Multiplayer
+# 🎮 GAPLANG - Game Tebak Kata Multiplayer tes
 
 Game tebak kata berbasis web yang dapat dimainkan oleh 2 orang secara berjauhan menggunakan Firebase Realtime Database.
 
